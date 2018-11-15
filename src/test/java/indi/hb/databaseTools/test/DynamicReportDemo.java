@@ -13,5 +13,15 @@ public class DynamicReportDemo {
 		for (TableBean tb : list) {
 			System.out.println(tb.getTable() + "<--->" + tb.getColumn());
 		}
+		if (dr.markOff(list)) {
+			System.out.println("----必需表----");
+			for (String str : dr.getEssential()) {
+				System.out.println(str);
+			}
+			System.out.println("----可选表----");
+			for (String str : dr.getSelectable()) {
+				System.out.println(str);
+			}
+		}
 	}
 }

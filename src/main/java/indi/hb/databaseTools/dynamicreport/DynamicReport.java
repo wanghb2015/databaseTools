@@ -24,13 +24,55 @@ public class DynamicReport extends BaseDBUtil {
 	 */
 	private final String SPLIT_STR = ",";
 	/**
-	 * 必选表
+	 * 必需表：选中的数据项唯一锁定的表
 	 */
-	private TreeSet<String> essential;
+	private TreeSet<String> essential = new TreeSet<>();
 	/**
-	 * 可选表
+	 * 可选表：选中的数据项对应的多选的表
 	 */
-	private TreeSet<String> selectable;
+	private TreeSet<String> selectable = new TreeSet<>();
+	
+	/**
+	 * 区分必需表和可选表
+	 * @param tables
+	 */
+	public boolean markOff(List<TableBean> tables) {
+		boolean result = false;
+		if (tables.isEmpty()) {
+			return result;
+		}
+		Map<String, Integer> cols = new HashMap<>();
+		// 记录列名出现的次数
+		for (TableBean tab : tables) {
+			cols.put(tab.getColumn(), (cols.get(tab.getColumn()) == null) ? 1 : cols.get(tab.getColumn()) + 1);
+		}
+		// 出现过多次和一次的字段
+		TreeSet<String> col_n = new TreeSet<>(), col_1 = new TreeSet<>();
+		for (Entry<String, Integer> entrySet : cols.entrySet()) {
+			// 区分出现过多次的字段项
+			if (entrySet.getValue() > 1) {
+				col_n.add(entrySet.getKey());
+			} else {
+				col_1.add(entrySet.getKey());
+			}
+		}
+		// 遍历所有选中表
+		for (TableBean tab : tables) {
+			if (col_1.contains(tab.getColumn())) {
+				// 如果字段只出现过1次，记入必需表
+				essential.add(tab.getTable());
+				// 如果已记入可选表，从可选表中移除
+				if (selectable.contains(tab.getTable())) {
+					selectable.remove(tab.getTable());
+				}
+			} else if (col_n.contains(tab.getColumn()) && !essential.contains(tab.getTable())) {
+				// 如果字段出现多次，且不在必需表，才记入可选表
+				selectable.add(tab.getTable());
+			}
+		}
+		result = true;
+		return result;
+	}
 	/**
 	 * 查询数据项从属的表
 	 * @param columns
@@ -72,7 +114,6 @@ public class DynamicReport extends BaseDBUtil {
 	public ReferenceBean reference(String table) {
 		return null;
 	}
-	
 	/**
 	 * 字段数量
 	 * @param columns
@@ -99,6 +140,7 @@ public class DynamicReport extends BaseDBUtil {
 			for (Entry<String, Object> entrySet : m.entrySet()) {
 				map.put(entrySet.getKey(), obj2str(entrySet.getValue()));
 			}
+			result.add(map);
 		}
 		return result;
 	}

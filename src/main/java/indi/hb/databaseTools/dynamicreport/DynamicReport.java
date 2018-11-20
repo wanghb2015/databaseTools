@@ -3,6 +3,8 @@ package indi.hb.databaseTools.dynamicreport;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -31,15 +33,74 @@ public class DynamicReport extends BaseDBUtil {
 	 * 可选表：选中的数据项对应的多选的表
 	 */
 	private TreeSet<String> selectable = new TreeSet<>();
-	
 	/**
-	 * 区分必需表和可选表
-	 * @param tables
+	 * 选中的字段，使用分解因子分割，区分大小写
 	 */
-	public boolean markOff(List<TableBean> tables) {
-		boolean result = false;
+	private String columns;
+	/**
+	 * 构造所有可能的组合
+	 * @param tables 所有选中的字段和对应表
+	 * @param col_n 可多选的字段
+	 * @param col_1  唯一的字段
+	 * @return
+	 */
+	public TableBean[][] makeUp(List<TableBean> tables, TreeSet<String> col_n, TreeSet<String> col_1) {
+		// 多选字段对应的出现次数
+		Map<String, Integer> colNum = new LinkedHashMap<>();
+		for (String col : col_n) {
+			colNum.put(col, 0);
+			for (TableBean tab : tables) {
+				if (col.equalsIgnoreCase(tab.getColumn())) {
+					colNum.put(col, colNum.get(col).intValue() + 1);
+				}
+			}
+		}
+		// 所有可能的表.字段组合数
+		int all = 1;
+		for (Entry<String, Integer> entry : colNum.entrySet()) {
+			all *= entry.getValue().intValue();
+		}
+		// 所有可能的表.字段组合矩阵
+		TableBean[][] allPossible = new TableBean[all][this.colCnt(getColumns())];
+		int serial_y, serial_x = 0;
+		// 填充多选表.字段
+		for (String col : col_n) {
+			for (serial_y = 0; serial_y < all; serial_y++) {
+				for (TableBean tab : tables) {
+					if (col.equalsIgnoreCase(tab.getColumn())) {
+						allPossible[serial_y][serial_x] = tab;
+					}
+				}
+			}
+			serial_x += 1;
+		}
+		// 填充唯一表.字段
+		for (String col : col_1) {
+			for (TableBean tab : tables) {
+				if (col.equalsIgnoreCase(tab.getColumn())) {
+					for (serial_y = 0; serial_y < all; serial_y++) {
+						allPossible[serial_y][serial_x] = tab;
+					}
+				}
+			}
+			serial_x += 1;
+		}
+		for (int i = 0, l = allPossible.length; i < l; i++) {
+			System.out.println("----------组合" + (i+1));
+			for (TableBean tab: allPossible[i]) {
+				System.out.println(tab.getTable() + "<--->" + tab.getColumn());
+			}
+		}
+		return allPossible;
+	}
+	/**
+	 * 区分必需表和可选表，并做出分组
+	 * @param tables
+	 * @return
+	 */
+	public TableBean[][] markOff(List<TableBean> tables) {
 		if (tables.isEmpty()) {
-			return result;
+			return null;
 		}
 		Map<String, Integer> cols = new HashMap<>();
 		// 记录列名出现的次数
@@ -70,17 +131,17 @@ public class DynamicReport extends BaseDBUtil {
 				selectable.add(tab.getTable());
 			}
 		}
-		result = true;
-		return result;
+		// 分组
+		return makeUp(tables, col_n, col_1);
 	}
 	/**
 	 * 查询数据项从属的表
 	 * @param columns
 	 * @return
 	 */
-	public List<TableBean> dependence(String columns) {
+	public List<TableBean> dependence() {
 		String sql_getDependences = "SELECT table_name, column_name FROM v_tab_col WHERE column_name IN (";
-		String[] column = columns.split(SPLIT_STR);
+		String[] column = getColumns().split(SPLIT_STR);
 		StringBuilder placeholder = new StringBuilder();
 		List<ArgumentDomain> args = new ArrayList<>();
 		for (int i = 0; i < column.length; i++) {

@@ -4,7 +4,6 @@ import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -65,10 +64,13 @@ public class DynamicReport extends BaseDBUtil {
 		int serial_y, serial_x = 0;
 		// 填充多选表.字段
 		for (String col : col_n) {
-			for (serial_y = 0; serial_y < all; serial_y++) {
+			// 行号初始化
+			serial_y = 0;
+			while (serial_y < all) {
 				for (TableBean tab : tables) {
 					if (col.equalsIgnoreCase(tab.getColumn())) {
-						allPossible[serial_y][serial_x] = tab;
+						// 同列循环填充
+						allPossible[serial_y++][serial_x] = tab;
 					}
 				}
 			}

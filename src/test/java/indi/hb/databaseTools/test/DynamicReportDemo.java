@@ -8,7 +8,8 @@ import indi.hb.databaseTools.dynamicreport.TableBean;
 public class DynamicReportDemo {
 	public static void main(String[] args) {
 		DynamicReport dr = new DynamicReport();
-		dr.setColumns("BIRTH,COMPANYABBR,COMPANYTYPE,DISPOSEDEPT,DISPOSENAME,ESTABLISHNO,GOABROADSTATE,PREPAREDNUM,STARTWORKDATE,POST,POSTSEQUENCE");
+//		dr.setColumns("BIRTH,COMPANYABBR,COMPANYTYPE,DISPOSEDEPT,DISPOSENAME,ESTABLISHNO,GOABROADSTATE,PREPAREDNUM,STARTWORKDATE,POST,POSTSEQUENCE");
+		dr.setColumns("EXPERTNAME, COMPANYNAME, PAYINSURANCE, SETNUM, POSTSEQUENCE, POST, POSTLEVEL");
 		List<TableBean> list = dr.dependence();
 		for (TableBean tb : list) {
 			System.out.println(tb.getTable() + "<--->" + tb.getColumn());

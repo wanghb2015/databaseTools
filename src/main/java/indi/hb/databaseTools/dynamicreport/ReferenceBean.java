@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper=false)
-public class ReferenceBean extends TableBean implements Comparable<ReferenceBean> {
+public class ReferenceBean extends TableBean {
 	/**
 	 * 依赖表名
 	 */

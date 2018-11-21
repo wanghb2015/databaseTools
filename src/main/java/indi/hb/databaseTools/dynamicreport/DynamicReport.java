@@ -54,23 +54,41 @@ public class DynamicReport extends BaseDBUtil {
 				}
 			}
 		}
-		// 所有可能的表.字段组合数
-		int all = 1;
+		// 所有可能的表.字段组合数,最多表数
+		int all = 1, max = 1, min = tables.size();
+		// 对应表最多的字段
+		String maxCol = "", minCol = "";
 		for (Entry<String, Integer> entry : colNum.entrySet()) {
 			all *= entry.getValue().intValue();
+			if (max < entry.getValue().intValue()) {
+				max = entry.getValue().intValue();
+				maxCol = entry.getKey();
+			}
+			if (min > entry.getValue().intValue()) {
+				min = entry.getValue().intValue();
+				minCol = entry.getKey();
+			}
 		}
 		// 所有可能的表.字段组合矩阵
 		TableBean[][] allPossible = new TableBean[all][this.colCnt(getColumns())];
-		int serial_y, serial_x = 0;
+		int serial_y, serial_x = 0, serial_y1;
 		// 填充多选表.字段
 		for (String col : col_n) {
 			// 行号初始化
 			serial_y = 0;
+			// 同列循环填充
 			while (serial_y < all) {
 				for (TableBean tab : tables) {
 					if (col.equalsIgnoreCase(tab.getColumn())) {
-						// 同列循环填充
-						allPossible[serial_y++][serial_x] = tab;
+						// 最少的列依次循环
+						if (minCol.equalsIgnoreCase(col)) {
+							for (serial_y1 = 0; serial_y1 < all / min; serial_y1++) {
+								allPossible[serial_y++][serial_x] = tab;
+							}
+						} else {
+							//其余列逐个循环
+							allPossible[serial_y++][serial_x] = tab;
+						}
 					}
 				}
 			}
@@ -90,7 +108,7 @@ public class DynamicReport extends BaseDBUtil {
 		for (int i = 0, l = allPossible.length; i < l; i++) {
 			System.out.println("----------组合" + (i+1));
 			for (TableBean tab: allPossible[i]) {
-				System.out.println(tab.getTable() + "<--->" + tab.getColumn());
+				System.out.println(tab.getTable() + "\t" + tab.getColumn());
 			}
 		}
 		return allPossible;

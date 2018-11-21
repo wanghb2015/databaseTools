@@ -55,15 +55,11 @@ public class DynamicReport extends BaseDBUtil {
 			}
 		}
 		// 所有可能的表.字段组合数,最多表数
-		int all = 1, max = 1, min = tables.size();
-		// 对应表最多的字段
-		String maxCol = "", minCol = "";
+		int all = 1, min = tables.size();
+		// 对应表最少的字段
+		String minCol = "";
 		for (Entry<String, Integer> entry : colNum.entrySet()) {
 			all *= entry.getValue().intValue();
-			if (max < entry.getValue().intValue()) {
-				max = entry.getValue().intValue();
-				maxCol = entry.getKey();
-			}
 			if (min > entry.getValue().intValue()) {
 				min = entry.getValue().intValue();
 				minCol = entry.getKey();
